@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PreS Vocabulary Crosswords</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a school exercise page. Set tabs on top, the grid on the left
+   like a sheet of squared paper, clues on the right, tools under the grid. */
+:root {
+  --paper: #eef1f8;
+  --card: #ffffff;
+  --ink: #1b2440;
+  --muted: #5a6486;
+  --line: #c5cde2;
+  --accent: #2f5bea;
+  --accent-ink: #ffffff;
+  --hl: #fff0b0;
+  --hl-strong: #ffd34d;
+  --good: #14845a;
+  --good-bg: #dcf5ea;
+  --bad: #c5334a;
+  --bad-bg: #fde3e7;
+  --font-display: "Baloo 2", "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "Be Vietnam Pro", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12162a;
+    --card: #1b2139;
+    --ink: #e9edfa;
+    --muted: #a0aacb;
+    --line: #3a4365;
+    --accent: #8aa4ff;
+    --accent-ink: #10142a;
+    --hl: #4b4526;
+    --hl-strong: #8f7a1c;
+    --good: #5fd6a8;
+    --good-bg: #173c30;
+    --bad: #ff8b9b;
+    --bad-bg: #47202a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12162a;
+  --card: #1b2139;
+  --ink: #e9edfa;
+  --muted: #a0aacb;
+  --line: #3a4365;
+  --accent: #8aa4ff;
+  --accent-ink: #10142a;
+  --hl: #4b4526;
+  --hl-strong: #8f7a1c;
+  --good: #5fd6a8;
+  --good-bg: #173c30;
+  --bad: #ff8b9b;
+  --bad-bg: #47202a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.page { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; }
+h1 { font-family: var(--font-display); font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lead { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+.level { font-weight: 600; font-size: .85rem; border: 1.5px solid var(--ink); border-radius: 999px; padding: 2px 12px; white-space: nowrap; }
+
+nav.levels { display: flex; flex-direction: column; gap: 14px; }
+.level-name { margin: 0 0 6px; font-weight: 700; font-size: .85rem; letter-spacing: .04em; text-transform: uppercase; }
+.level-name small { font-weight: 500; font-size: .85rem; color: var(--muted); letter-spacing: 0; text-transform: none; margin-left: 6px; }
+.sets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.gap { display: inline-block; width: 3.2em; border-bottom: 2px solid currentColor; margin: 0 2px; }
+.tab {
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.tab:hover { border-color: var(--accent); }
+.tab[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 -4px 0 var(--accent); }
+.tab .no { font-size: .75rem; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tab .name { font-family: var(--font-display); font-size: 1.1rem; line-height: 1.15; }
+.tab .count { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tab.done .count { color: var(--good); font-weight: 600; }
+
+.board { display: grid; grid-template-columns: minmax(0, auto) minmax(260px, 1fr); gap: 24px; align-items: start; }
+.sheet { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.sheet h2 { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.2; margin: 0; }
+.sheet h2 small { font-family: var(--font-body); font-weight: 500; font-size: .9rem; color: var(--muted); margin-left: 8px; }
+.how { margin: 0; color: var(--muted); font-size: .92rem; }
+
+.grid-wrap { overflow-x: auto; background: var(--paper); border-radius: 12px; padding: 12px; }
+.grid {
+  --cell: clamp(20px, calc((100vw - 96px) / var(--cols)), 40px);
+  display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell);
+  width: max-content;
+}
+.cell { position: relative; border: 1.5px solid var(--ink); margin: -0.75px; background: var(--card); }
+.cell .num { position: absolute; top: 1px; left: 2px; font-size: calc(var(--cell) * .27); line-height: 1; font-weight: 600; color: var(--muted); pointer-events: none; z-index: 1; }
+.cell input {
+  position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: calc(var(--cell) * .18) 0 0; margin: 0;
+  background: transparent; color: var(--ink); text-align: center; text-transform: uppercase; caret-color: transparent;
+  font-family: var(--font-body); font-weight: 700; font-size: calc(var(--cell) * .52); border-radius: 0;
+}
+.cell.in-word { background: var(--hl); }
+.cell input:focus { outline: none; }
+.cell:focus-within { background: var(--hl-strong); z-index: 2; box-shadow: 0 0 0 2px var(--accent); }
+.cell.ok input { color: var(--good); }
+.cell.ok { background: var(--good-bg); }
+.cell.wrong input { color: var(--bad); }
+.cell.wrong { background: var(--bad-bg); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  font: inherit; font-weight: 600; font-size: .92rem; cursor: pointer; color: var(--ink);
+  background: var(--card); border: 1.5px solid var(--ink); border-radius: 10px; padding: 8px 14px;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); color: var(--accent-ink); }
+.btn.armed { border-color: var(--bad); color: var(--bad); }
+.btn:focus-visible, .tab:focus-visible, .clue:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.status { min-height: 1.5em; margin: 0; font-weight: 600; }
+.status.good { color: var(--good); }
+.status.bad { color: var(--bad); }
+
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.clues { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px 20px; }
+.clues h3 { font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 6px; display: flex; align-items: baseline; gap: 8px; }
+.clues h3 small { font-family: var(--font-body); font-weight: 500; font-size: .85rem; color: var(--muted); }
+.clues ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.clue {
+  font: inherit; color: var(--ink); background: transparent; border: 0; border-radius: 8px; cursor: pointer;
+  width: 100%; text-align: left; padding: 5px 8px; display: grid; grid-template-columns: 1.8em 1fr auto; gap: 4px; align-items: baseline;
+}
+.clue:hover { background: var(--paper); }
+.clue .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.clue .len { color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.clue.active { background: var(--hl); }
+.clue.solved .t { color: var(--muted); text-decoration: line-through; }
+.clue.solved .len { color: var(--good); font-weight: 700; }
+
+footer.note { color: var(--muted); font-size: .88rem; max-width: 70ch; }
+
+@media (max-width: 860px) {
+  .board { grid-template-columns: minmax(0, 1fr); }
+  .sets { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+  .sheet { padding: 12px; }
+  .grid-wrap { padding: 8px; }
+  .grid { --cell: clamp(19px, calc((100vw - 78px) / var(--cols)), 40px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cell { transition: background-color .12s; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>PreS Vocabulary Crosswords</h1>
+      <p class="lead">Các ô chữ ôn danh từ trong danh sách PreS.</p>
+    </div>
+    <span class="level">Level A0–A1</span>
+  </header>
+
+  <nav class="levels" id="tabs" aria-label="Chọn bộ ô chữ"></nav>
+
+  <main class="board">
+    <section class="sheet" aria-labelledby="set-title">
+      <h2 id="set-title"></h2>
+      <p class="how" id="how"></p>
+      <div class="grid-wrap"><div class="grid" id="grid"></div></div>
+      <div class="tools">
+        <button class="btn primary" id="btn-check" type="button">Kiểm tra</button>
+        <button class="btn" id="btn-reset" type="button">Làm lại</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <aside class="side">
+      <section class="sheet">
+        <div class="clues">
+          <div><h3>Across <small>Hàng ngang</small></h3><ol id="clues-A"></ol></div>
+          <div><h3>Down <small>Hàng dọc</small></h3><ol id="clues-D"></ol></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="note">Số trong ngoặc là số chữ cái của từ. </footer>
+</div>
+
+<script>
+const PUZZLES = [{"id": "set-1", "title": "Clothes & Classroom", "vi": "Quần áo & Lớp học", "kind": "vi", "rows": ["...B.S.......B", ".CLOTHES.B.T.O", "...O.O.T.A.E.A", "MARKER.U.CHAIR", ".....T.D.K.C.D", ".DRESS.E.P.H..", "....O.SNEAKERS", "....C..T.C.R.H", "....K.T..K...I", "......A....S.R", "......B.JACKET", ".PENCIL.E..I..", "......ERASER..", "........N..T..", "....SHOES....."], "h": 15, "w": 14, "entries": [{"n": 4, "d": "A", "r": 1, "c": 1, "w": "CLOTHES", "clue": "quần áo"}, {"n": 8, "d": "A", "r": 3, "c": 0, "w": "MARKER", "clue": "bút lông"}, {"n": 9, "d": "A", "r": 3, "c": 9, "w": "CHAIR", "clue": "ghế"}, {"n": 10, "d": "A", "r": 5, "c": 1, "w": "DRESS", "clue": "cái đầm"}, {"n": 12, "d": "A", "r": 6, "c": 6, "w": "SNEAKERS", "clue": "đôi giày thể thao"}, {"n": 16, "d": "A", "r": 10, "c": 8, "w": "JACKET", "clue": "áo khoác"}, {"n": 17, "d": "A", "r": 11, "c": 1, "w": "PENCIL", "clue": "bút chì"}, {"n": 18, "d": "A", "r": 12, "c": 6, "w": "ERASER", "clue": "cục gôm"}, {"n": 19, "d": "A", "r": 14, "c": 4, "w": "SHOES", "clue": "giày"}, {"n": 1, "d": "D", "r": 0, "c": 3, "w": "BOOK", "clue": "sách"}, {"n": 2, "d": "D", "r": 0, "c": 5, "w": "SHORTS", "clue": "quần cụt"}, {"n": 3, "d": "D", "r": 0, "c": 13, "w": "BOARD", "clue": "bảng"}, {"n": 5, "d": "D", "r": 1, "c": 7, "w": "STUDENT", "clue": "học sinh"}, {"n": 6, "d": "D", "r": 1, "c": 9, "w": "BACKPACK", "clue": "balo"}, {"n": 7, "d": "D", "r": 1, "c": 11, "w": "TEACHER", "clue": "giáo viên"}, {"n": 11, "d": "D", "r": 5, "c": 4, "w": "SOCK", "clue": "vớ"}, {"n": 13, "d": "D", "r": 6, "c": 13, "w": "SHIRT", "clue": "áo sơ mi"}, {"n": 14, "d": "D", "r": 8, "c": 6, "w": "TABLE", "clue": "bàn"}, {"n": 15, "d": "D", "r": 9, "c": 11, "w": "SKIRT", "clue": "chân váy"}, {"n": 16, "d": "D", "r": 10, "c": 8, "w": "JEANS", "clue": "quần jeans"}]}, {"id": "set-2", "title": "Home & Places", "vi": "Nhà cửa & Địa điểm", "kind": "vi", "rows": [".WINDOW....C..", "......A.M..E..", "...D..L.U..I..", "..HOTEL.S..L..", "...O....E..I..", "...RESTAURANT.", "B.C...E.M..G.P", "I.A...L...E..A", "COMPUTER.FLOOR", "Y.E...V...E..K", "CAR.S.I...V...", "L.A.HOSPITAL..", "E...O.I...T..K", "..LAPTOP.HOUSE", "......N...R..Y"], "h": 15, "w": 14, "entries": [{"n": 1, "d": "A", "r": 0, "c": 1, "w": "WINDOW", "clue": "cửa sổ"}, {"n": 6, "d": "A", "r": 3, "c": 2, "w": "HOTEL", "clue": "khách sạn"}, {"n": 7, "d": "A", "r": 5, "c": 3, "w": "RESTAURANT", "clue": "nhà hàng"}, {"n": 13, "d": "A", "r": 8, "c": 0, "w": "COMPUTER", "clue": "máy tính"}, {"n": 14, "d": "A", "r": 8, "c": 9, "w": "FLOOR", "clue": "sàn nhà"}, {"n": 15, "d": "A", "r": 10, "c": 0, "w": "CAR", "clue": "xe hơi"}, {"n": 17, "d": "A", "r": 11, "c": 4, "w": "HOSPITAL", "clue": "bệnh viện"}, {"n": 19, "d": "A", "r": 13, "c": 2, "w": "LAPTOP", "clue": "máy tính xách tay"}, {"n": 20, "d": "A", "r": 13, "c": 9, "w": "HOUSE", "clue": "căn nhà"}, {"n": 2, "d": "D", "r": 0, "c": 6, "w": "WALL", "clue": "bức tường"}, {"n": 3, "d": "D", "r": 0, "c": 11, "w": "CEILING", "clue": "trần nhà"}, {"n": 4, "d": "D", "r": 1, "c": 8, "w": "MUSEUM", "clue": "bảo tàng"}, {"n": 5, "d": "D", "r": 2, "c": 3, "w": "DOOR", "clue": "cửa"}, {"n": 8, "d": "D", "r": 5, "c": 6, "w": "TELEVISION", "clue": "tivi"}, {"n": 9, "d": "D", "r": 6, "c": 0, "w": "BICYCLE", "clue": "xe đạp"}, {"n": 10, "d": "D", "r": 6, "c": 2, "w": "CAMERA", "clue": "camera"}, {"n": 11, "d": "D", "r": 6, "c": 13, "w": "PARK", "clue": "công viên"}, {"n": 12, "d": "D", "r": 7, "c": 10, "w": "ELEVATOR", "clue": "thang máy"}, {"n": 16, "d": "D", "r": 10, "c": 4, "w": "SHOP", "clue": "cửa hàng"}, {"n": 18, "d": "D", "r": 12, "c": 13, "w": "KEY", "clue": "chìa khóa"}]}, {"id": "set-3", "title": "Body & Family", "vi": "Cơ thể & Gia đình", "kind": "vi", "rows": ["......NECK...", "FOOT..O......", "A...SISTER..K", "MOUTH.E.....N", "I.N.O...SMILE", "L.COUSIN.O..E", "Y.L.L....T.A.", ".HEAD.FATHER.", "....E....E.M.", "...BROTHER...", "......E......", "...E..EYE....", "...AUNT......", "...R..H......"], "h": 14, "w": 13, "entries": [{"n": 1, "d": "A", "r": 0, "c": 6, "w": "NECK", "clue": "cổ"}, {"n": 2, "d": "A", "r": 1, "c": 0, "w": "FOOT", "clue": "bàn chân (số ít)"}, {"n": 3, "d": "A", "r": 2, "c": 4, "w": "SISTER", "clue": "chị em gái"}, {"n": 5, "d": "A", "r": 3, "c": 0, "w": "MOUTH", "clue": "miệng"}, {"n": 7, "d": "A", "r": 4, "c": 8, "w": "SMILE", "clue": "nụ cười"}, {"n": 9, "d": "A", "r": 5, "c": 2, "w": "COUSIN", "clue": "anh, chị, em họ"}, {"n": 11, "d": "A", "r": 7, "c": 1, "w": "HEAD", "clue": "đầu"}, {"n": 12, "d": "A", "r": 7, "c": 6, "w": "FATHER", "clue": "cha"}, {"n": 13, "d": "A", "r": 9, "c": 3, "w": "BROTHER", "clue": "anh em trai"}, {"n": 16, "d": "A", "r": 11, "c": 6, "w": "EYE", "clue": "mắt"}, {"n": 17, "d": "A", "r": 12, "c": 3, "w": "AUNT", "clue": "cô, dì, bác gái"}, {"n": 1, "d": "D", "r": 0, "c": 6, "w": "NOSE", "clue": "mũi"}, {"n": 2, "d": "D", "r": 1, "c": 0, "w": "FAMILY", "clue": "gia đình"}, {"n": 3, "d": "D", "r": 2, "c": 4, "w": "SHOULDER", "clue": "vai"}, {"n": 4, "d": "D", "r": 2, "c": 12, "w": "KNEE", "clue": "đầu gối"}, {"n": 6, "d": "D", "r": 3, "c": 2, "w": "UNCLE", "clue": "chú, bác trai, cậu"}, {"n": 8, "d": "D", "r": 4, "c": 9, "w": "MOTHER", "clue": "mẹ"}, {"n": 10, "d": "D", "r": 6, "c": 11, "w": "ARM", "clue": "cánh tay"}, {"n": 14, "d": "D", "r": 9, "c": 6, "w": "TEETH", "clue": "răng (số nhiều)"}, {"n": 15, "d": "D", "r": 11, "c": 3, "w": "EAR", "clue": "tai"}]}, {"id": "set-4", "title": "Food & Time", "vi": "Đồ ăn & Thời gian", "kind": "vi", "rows": ["..............W", "......F..M.D..E", "......I..I.I..E", "......S..L.N..K", ".....CHICKEN..E", "....B......E..N", ".L..R...T.BREAD", "JUICE.FOOD..V..", ".N..A...M...E..", ".C..K..MORNING.", ".H..F...R.O.I..", "....AFTERNOON..", ".R..S.O.O.D.G..", "NIGHT.D.W.L....", ".C....A...E....", ".EGG..Y...SOUP."], "h": 16, "w": 15, "entries": [{"n": 5, "d": "A", "r": 4, "c": 5, "w": "CHICKEN", "clue": "gà"}, {"n": 9, "d": "A", "r": 6, "c": 10, "w": "BREAD", "clue": "bánh mì gối"}, {"n": 11, "d": "A", "r": 7, "c": 0, "w": "JUICE", "clue": "nước trái cây"}, {"n": 12, "d": "A", "r": 7, "c": 6, "w": "FOOD", "clue": "đồ ăn"}, {"n": 13, "d": "A", "r": 9, "c": 7, "w": "MORNING", "clue": "buổi sáng"}, {"n": 15, "d": "A", "r": 11, "c": 4, "w": "AFTERNOON", "clue": "buổi chiều"}, {"n": 18, "d": "A", "r": 13, "c": 0, "w": "NIGHT", "clue": "đêm muộn"}, {"n": 19, "d": "A", "r": 15, "c": 1, "w": "EGG", "clue": "trứng"}, {"n": 20, "d": "A", "r": 15, "c": 10, "w": "SOUP", "clue": "súp / canh"}, {"n": 1, "d": "D", "r": 0, "c": 14, "w": "WEEKEND", "clue": "cuối tuần"}, {"n": 2, "d": "D", "r": 1, "c": 6, "w": "FISH", "clue": "cá"}, {"n": 3, "d": "D", "r": 1, "c": 9, "w": "MILK", "clue": "sữa"}, {"n": 4, "d": "D", "r": 1, "c": 11, "w": "DINNER", "clue": "bữa tối"}, {"n": 6, "d": "D", "r": 5, "c": 4, "w": "BREAKFAST", "clue": "bữa sáng"}, {"n": 7, "d": "D", "r": 6, "c": 1, "w": "LUNCH", "clue": "bữa trưa"}, {"n": 8, "d": "D", "r": 6, "c": 8, "w": "TOMORROW", "clue": "ngày mai"}, {"n": 10, "d": "D", "r": 6, "c": 12, "w": "EVENING", "clue": "buổi tối"}, {"n": 14, "d": "D", "r": 9, "c": 10, "w": "NOODLES", "clue": "mì"}, {"n": 16, "d": "D", "r": 11, "c": 6, "w": "TODAY", "clue": "hôm nay"}, {"n": 17, "d": "D", "r": 12, "c": 1, "w": "RICE", "clue": "gạo"}]}, {"id": "set-5", "title": "Things Around Us", "vi": "Đồ vật quanh ta", "kind": "ctx", "rows": ["............PEN", ".....P.BAG..A..", "....HAT..L..P..", "...M.N.CHARGER.", "..LIFT.A.S..R..", "H..C.S.B.S.S...", "A..R..DICE.L...", "M..O.V.N.SWITCH", "M.SPEAKER..P...", "E..H.S.T...P.G.", "REMOTE....BELL.", "...N.......R.A.", "..HEADPHONES.S.", ".............S."], "h": 14, "w": 15, "entries": [{"n": 1, "d": "A", "r": 0, "c": 12, "w": "PEN", "clue": "I write my name with a blue _____."}, {"n": 3, "d": "A", "r": 1, "c": 7, "w": "BAG", "clue": "My books and pens are in my _____."}, {"n": 5, "d": "A", "r": 2, "c": 4, "w": "HAT", "clue": "It is sunny. I wear a _____ on my head."}, {"n": 7, "d": "A", "r": 3, "c": 7, "w": "CHARGER", "clue": "My phone is at 1%. I need a _____."}, {"n": 8, "d": "A", "r": 4, "c": 2, "w": "LIFT", "clue": "We take the _____ up to the tenth floor."}, {"n": 11, "d": "A", "r": 6, "c": 6, "w": "DICE", "clue": "In this game, you roll the _____ and get a number from 1 to 6."}, {"n": 13, "d": "A", "r": 7, "c": 9, "w": "SWITCH", "clue": "It is dark. Press the _____ to turn on the light."}, {"n": 14, "d": "A", "r": 8, "c": 2, "w": "SPEAKER", "clue": "The music from the _____ is very loud."}, {"n": 16, "d": "A", "r": 10, "c": 0, "w": "REMOTE", "clue": "Where is the _____? I want to turn on the TV."}, {"n": 17, "d": "A", "r": 10, "c": 10, "w": "BELL", "clue": "The _____ rings, and the class starts."}, {"n": 18, "d": "A", "r": 12, "c": 2, "w": "HEADPHONES", "clue": "I listen to music with my _____."}, {"n": 1, "d": "D", "r": 0, "c": 12, "w": "PAPER", "clue": "Write your name on a sheet of _____."}, {"n": 2, "d": "D", "r": 1, "c": 5, "w": "PANTS", "clue": "He wears a white shirt and long black _____."}, {"n": 4, "d": "D", "r": 1, "c": 9, "w": "GLASSES", "clue": "I can't see well, so I wear _____."}, {"n": 6, "d": "D", "r": 3, "c": 3, "w": "MICROPHONE", "clue": "The singer holds a _____ and sings."}, {"n": 7, "d": "D", "r": 3, "c": 7, "w": "CABINET", "clue": "The cups are in the kitchen _____."}, {"n": 9, "d": "D", "r": 5, "c": 0, "w": "HAMMER", "clue": "A _____ is a tool. You hit things with it."}, {"n": 10, "d": "D", "r": 5, "c": 11, "w": "SLIPPERS", "clue": "At home, I don't wear shoes. I wear _____."}, {"n": 12, "d": "D", "r": 7, "c": 5, "w": "VASE", "clue": "Put the flowers in the _____."}, {"n": 15, "d": "D", "r": 9, "c": 13, "w": "GLASS", "clue": "Can I have a _____ of water, please?"}]}, {"id": "set-6", "title": "People & Body", "vi": "Con người & Cơ thể", "kind": "ctx", "rows": ["........A.L..", "..S.G.SINGER.", "..I.R...K.G..", "..B.A...L..U.", "..L.NEPHEW.N.", "CHILD......C.", "O.N.F......L.", "A.GRANDMOTHER", "C...T....O...", "H..CHILDREN..", ".P..E........", ".L.TRAINER...", ".A.O.U.I..B..", ".Y.O.N.E..O..", "FEET.T.C..D..", ".R.H..BELLY.."], "h": 16, "w": 13, "entries": [{"n": 5, "d": "A", "r": 1, "c": 6, "w": "SINGER", "clue": "She sings very well. She is a famous _____."}, {"n": 7, "d": "A", "r": 4, "c": 4, "w": "NEPHEW", "clue": "My sister has a son. He is my _____."}, {"n": 8, "d": "A", "r": 5, "c": 0, "w": "CHILD", "clue": "One _____, two children."}, {"n": 9, "d": "A", "r": 7, "c": 2, "w": "GRANDMOTHER", "clue": "My mother's mother is my _____."}, {"n": 11, "d": "A", "r": 9, "c": 3, "w": "CHILDREN", "clue": "They have three _____: two boys and one girl."}, {"n": 13, "d": "A", "r": 11, "c": 3, "w": "TRAINER", "clue": "At the gym, my _____ helps me exercise."}, {"n": 17, "d": "A", "r": 14, "c": 0, "w": "FEET", "clue": "One foot, two _____."}, {"n": 18, "d": "A", "r": 15, "c": 6, "w": "BELLY", "clue": "I eat too much. Now my _____ hurts."}, {"n": 1, "d": "D", "r": 0, "c": 8, "w": "ANKLE", "clue": "Your _____ is between your leg and your foot."}, {"n": 2, "d": "D", "r": 0, "c": 10, "w": "LEG", "clue": "I can't walk. My left _____ hurts."}, {"n": 3, "d": "D", "r": 1, "c": 2, "w": "SIBLING", "clue": "A brother or a sister is a _____."}, {"n": 4, "d": "D", "r": 1, "c": 4, "w": "GRANDFATHER", "clue": "My father's father is my _____."}, {"n": 6, "d": "D", "r": 3, "c": 11, "w": "UNCLE", "clue": "My father's brother is my _____."}, {"n": 8, "d": "D", "r": 5, "c": 0, "w": "COACH", "clue": "The _____ teaches the soccer team."}, {"n": 10, "d": "D", "r": 7, "c": 9, "w": "TOE", "clue": "My shoe is too small. My big _____ hurts."}, {"n": 12, "d": "D", "r": 10, "c": 1, "w": "PLAYER", "clue": "He plays basketball. He is a good _____."}, {"n": 13, "d": "D", "r": 11, "c": 3, "w": "TOOTH", "clue": "One _____, two teeth."}, {"n": 14, "d": "D", "r": 11, "c": 5, "w": "AUNT", "clue": "My mother's sister is my _____."}, {"n": 15, "d": "D", "r": 11, "c": 7, "w": "NIECE", "clue": "My brother has a daughter. She is my _____."}, {"n": 16, "d": "D", "r": 12, "c": 10, "w": "BODY", "clue": "Your head, arms and legs are parts of your _____."}]}, {"id": "set-7", "title": "Food & Sports", "vi": "Đồ ăn & Thể thao", "kind": "ctx", "rows": ["......L..V.D..B", ".....JUICE.O..A", "......N..G.L..S", "......CEREAL..K", "......H..T.A..E", ".........A.R..T", "...TOAST.B....B", "...E..P..L..S.A", "...A.VOLLEYBALL", "....S.R.....N.L", "...FOOTBALL.D..", "....C.......W..", ".R..C..SWIMMING", "DINNER.O..I.C..", ".C..R..U..L.H..", "BEEF...PORK...."], "h": 16, "w": 15, "entries": [{"n": 5, "d": "A", "r": 1, "c": 5, "w": "JUICE", "clue": "I am thirsty. I want a glass of orange _____."}, {"n": 6, "d": "A", "r": 3, "c": 6, "w": "CEREAL", "clue": "For breakfast, I eat _____ with milk."}, {"n": 7, "d": "A", "r": 6, "c": 3, "w": "TOAST", "clue": "_____ is hot, brown bread. I eat it with butter."}, {"n": 10, "d": "A", "r": 8, "c": 5, "w": "VOLLEYBALL", "clue": "In _____, players hit the ball over a net with their hands."}, {"n": 12, "d": "A", "r": 10, "c": 3, "w": "FOOTBALL", "clue": "Another name for soccer is _____."}, {"n": 14, "d": "A", "r": 12, "c": 7, "w": "SWIMMING", "clue": "It is hot today. Let's go _____ in the pool."}, {"n": 16, "d": "A", "r": 13, "c": 0, "w": "DINNER", "clue": "My family eats _____ at 7 in the evening."}, {"n": 17, "d": "A", "r": 15, "c": 0, "w": "BEEF", "clue": "_____ is meat from a cow."}, {"n": 18, "d": "A", "r": 15, "c": 7, "w": "PORK", "clue": "_____ is meat from a pig."}, {"n": 1, "d": "D", "r": 0, "c": 6, "w": "LUNCH", "clue": "We eat _____ at 12 o'clock."}, {"n": 2, "d": "D", "r": 0, "c": 9, "w": "VEGETABLE", "clue": "A carrot is a _____."}, {"n": 3, "d": "D", "r": 0, "c": 11, "w": "DOLLAR", "clue": "This pen is cheap. It is only one US _____."}, {"n": 4, "d": "D", "r": 0, "c": 14, "w": "BASKETBALL", "clue": "In _____, players throw the ball into a basket."}, {"n": 7, "d": "D", "r": 6, "c": 3, "w": "TEA", "clue": "Do you want coffee or _____?"}, {"n": 8, "d": "D", "r": 6, "c": 6, "w": "SPORT", "clue": "Tennis is my favorite _____."}, {"n": 9, "d": "D", "r": 7, "c": 12, "w": "SANDWICH", "clue": "A _____ is two pieces of bread with meat or egg in the middle."}, {"n": 11, "d": "D", "r": 9, "c": 4, "w": "SOCCER", "clue": "In _____, players kick the ball with their feet."}, {"n": 13, "d": "D", "r": 12, "c": 1, "w": "RICE", "clue": "In Vietnam, people eat _____ every day."}, {"n": 14, "d": "D", "r": 12, "c": 7, "w": "SOUP", "clue": "I eat hot _____ with a spoon."}, {"n": 15, "d": "D", "r": 12, "c": 10, "w": "MILK", "clue": "Babies drink _____."}]}, {"id": "set-8", "title": "Nature, Time & Places", "vi": "Thiên nhiên, Thời gian & Địa điểm", "kind": "ctx", "rows": ["..FLOWER.......", ".C...E.....B...", ".L.U.A.....O...", "NOON.TOMORROW..", ".U.I.H.O...K...", ".D.V.E.T.W.SUN.", "..YEAR.O.E.T...", "...R..TREE.O..M", "...S...B.K.R..I", "..AIR.TIME.E..D", "...T...K.N....N", "...YESTERDAY..I", ".....K....T...G", "...DAY....MONTH", "..............T"], "h": 15, "w": 15, "entries": [{"n": 1, "d": "A", "r": 0, "c": 2, "w": "FLOWER", "clue": "A rose is a beautiful _____."}, {"n": 6, "d": "A", "r": 3, "c": 0, "w": "NOON", "clue": "12 o'clock in the daytime is _____."}, {"n": 7, "d": "A", "r": 3, "c": 5, "w": "TOMORROW", "clue": "Today is Tuesday. _____ is Wednesday."}, {"n": 10, "d": "A", "r": 5, "c": 11, "w": "SUN", "clue": "The _____ is hot and yellow. We see it in the daytime."}, {"n": 11, "d": "A", "r": 6, "c": 2, "w": "YEAR", "clue": "There are twelve months in a _____."}, {"n": 12, "d": "A", "r": 7, "c": 6, "w": "TREE", "clue": "A _____ is tall and green. Birds live in it."}, {"n": 14, "d": "A", "r": 9, "c": 2, "w": "AIR", "clue": "The _____ in the park is clean and fresh."}, {"n": 15, "d": "A", "r": 9, "c": 6, "w": "TIME", "clue": "What _____ is it? It is seven o'clock."}, {"n": 16, "d": "A", "r": 11, "c": 3, "w": "YESTERDAY", "clue": "Today is Tuesday. _____ was Monday."}, {"n": 19, "d": "A", "r": 13, "c": 3, "w": "DAY", "clue": "Monday is the first _____ of the week."}, {"n": 20, "d": "A", "r": 13, "c": 10, "w": "MONTH", "clue": "January is the first _____ of the year."}, {"n": 2, "d": "D", "r": 0, "c": 5, "w": "WEATHER", "clue": "The _____ is nice today. It is warm and sunny."}, {"n": 3, "d": "D", "r": 1, "c": 1, "w": "CLOUD", "clue": "Look! There is a big white _____ in the sky."}, {"n": 4, "d": "D", "r": 1, "c": 11, "w": "BOOKSTORE", "clue": "I want a new book. Let's go to the _____."}, {"n": 5, "d": "D", "r": 2, "c": 3, "w": "UNIVERSITY", "clue": "My sister is 19. She studies at a _____."}, {"n": 8, "d": "D", "r": 3, "c": 7, "w": "MOTORBIKE", "clue": "My father rides his _____ to work."}, {"n": 9, "d": "D", "r": 5, "c": 9, "w": "WEEKEND", "clue": "Saturday and Sunday are the _____."}, {"n": 13, "d": "D", "r": 7, "c": 14, "w": "MIDNIGHT", "clue": "12 o'clock at night is _____."}, {"n": 17, "d": "D", "r": 11, "c": 5, "w": "SKY", "clue": "At night, we see the moon and stars in the _____."}, {"n": 18, "d": "D", "r": 11, "c": 10, "w": "ATM", "clue": "I need money. Where is an _____?"}]}, {"id": "set-9", "title": "At School & At Home", "vi": "Ở trường & Ở nhà", "kind": "vctx", "rows": [".STAIRCASE.....", ".T....E........", ".U.BOARD.WALL..", ".D....T..I.....", "KEY.CEILING....", ".N....F..D.....", ".TELEVISION....", "..R...C..W.....", ".BACKPACK......", "..S...T...P....", ".TEACHER..E....", "..R.H.....N....", "...MAGNET.C.C..", "....I...A.I.L..", ".DOOR...BALCONY", "........L...T..", "....SOCKET..H.."], "h": 17, "w": 15, "entries": [{"n": 1, "d": "A", "r": 0, "c": 1, "w": "STAIRCASE", "clue": "Thang máy bị hư. Chúng ta phải đi bộ lên tầng 3 bằng _____."}, {"n": 3, "d": "A", "r": 2, "c": 3, "w": "BOARD", "clue": "Cô viết bài lên _____ để cả lớp cùng nhìn và chép vào vở."}, {"n": 4, "d": "A", "r": 2, "c": 9, "w": "WALL", "clue": "Bức tranh và cái đồng hồ được treo trên _____."}, {"n": 5, "d": "A", "r": 4, "c": 0, "w": "KEY", "clue": "Cửa khóa rồi. Tôi cần _____ để mở."}, {"n": 6, "d": "A", "r": 4, "c": 4, "w": "CEILING", "clue": "Nằm trên giường nhìn lên, em thấy cái quạt gắn trên _____."}, {"n": 7, "d": "A", "r": 6, "c": 1, "w": "TELEVISION", "clue": "Buổi tối, cả nhà ngồi ở phòng khách xem phim trên _____."}, {"n": 9, "d": "A", "r": 8, "c": 1, "w": "BACKPACK", "clue": "Em bỏ sách vở vào _____ rồi đeo lên vai đi học."}, {"n": 11, "d": "A", "r": 10, "c": 1, "w": "TEACHER", "clue": "_____ đứng trước lớp và dạy chúng em học bài."}, {"n": 13, "d": "A", "r": 12, "c": 3, "w": "MAGNET", "clue": "Vật này hút sắt. Cô dùng nó để giữ tờ giấy trên bảng."}, {"n": 16, "d": "A", "r": 14, "c": 1, "w": "DOOR", "clue": "Có ai đang gõ _____. Em ra mở xem ai đến nhé."}, {"n": 17, "d": "A", "r": 14, "c": 8, "w": "BALCONY", "clue": "Nhà em ở tầng 5. Mẹ trồng hoa và phơi đồ ngoài _____."}, {"n": 18, "d": "A", "r": 16, "c": 4, "w": "SOCKET", "clue": "Điện thoại hết pin. Cắm cục sạc vào _____ điện trên tường đi."}, {"n": 1, "d": "D", "r": 0, "c": 1, "w": "STUDENT", "clue": "Lớp em có 30 _____. Bạn nào cũng mặc đồng phục."}, {"n": 2, "d": "D", "r": 0, "c": 6, "w": "CERTIFICATE", "clue": "Cuối năm, học sinh giỏi lên sân khấu nhận _____ của trường."}, {"n": 4, "d": "D", "r": 2, "c": 9, "w": "WINDOW", "clue": "Phòng nóng quá. Mở _____ ra cho gió và nắng vào đi."}, {"n": 8, "d": "D", "r": 6, "c": 2, "w": "ERASER", "clue": "Em viết sai bằng bút chì. Em dùng _____ để xóa."}, {"n": 10, "d": "D", "r": 9, "c": 10, "w": "PENCIL", "clue": "Em vẽ tranh bằng cây _____. Khi nó mòn, em phải chuốt lại."}, {"n": 12, "d": "D", "r": 10, "c": 4, "w": "CHAIR", "clue": "Mời bạn ngồi xuống cái _____ này."}, {"n": 14, "d": "D", "r": 12, "c": 8, "w": "TABLE", "clue": "Đến giờ cơm, mẹ dọn chén đũa lên _____ và cả nhà ngồi quanh đó."}, {"n": 15, "d": "D", "r": 12, "c": 12, "w": "CLOTH", "clue": "Bàn dơ quá. Lấy cái _____ lau bàn giúp mẹ."}]}, {"id": "set-10", "title": "Clothes & Body", "vi": "Quần áo & Cơ thể", "kind": "vctx", "rows": ["SNEAKERS.E.", ".......H.Y.", ".J...SMILE.", ".E...K.R...", "CAP..I.T...", ".N.N.R.....", ".SHORTS....", "...S....N.C", "..TEETH.E.L", "T.R...E.C.O", "U.O..JACKET", "MOUTH.D...H", "M.S.....K.E", "Y.EARPHONES", "..R.....E..", "..SHOULDER."], "h": 16, "w": 11, "entries": [{"n": 1, "d": "A", "r": 0, "c": 0, "w": "SNEAKERS", "clue": "Khi chạy bộ hay chơi thể thao, tôi mang đôi _____ này cho êm chân."}, {"n": 5, "d": "A", "r": 2, "c": 5, "w": "SMILE", "clue": "Cô ấy rất thân thiện. Trên môi cô lúc nào cũng có một _____."}, {"n": 6, "d": "A", "r": 4, "c": 0, "w": "CAP", "clue": "Trời nắng, anh ấy đội cái _____ lưỡi trai. (bắt đầu bằng chữ C)"}, {"n": 8, "d": "A", "r": 6, "c": 1, "w": "SHORTS", "clue": "Ở nhà trời nóng, em không mặc quần dài. Em mặc _____ cho mát."}, {"n": 11, "d": "A", "r": 8, "c": 2, "w": "TEETH", "clue": "Mỗi sáng và mỗi tối, em dùng bàn chải và kem để đánh _____."}, {"n": 14, "d": "A", "r": 10, "c": 5, "w": "JACKET", "clue": "Trời lạnh quá. Mặc thêm _____ vào cho ấm."}, {"n": 15, "d": "A", "r": 11, "c": 0, "w": "MOUTH", "clue": "Khi ăn, đừng nói chuyện. Hãy ngậm _____ lại khi nhai."}, {"n": 17, "d": "A", "r": 13, "c": 2, "w": "EARPHONES", "clue": "Trên xe buýt, tôi nhét _____ vào hai tai để nghe nhạc. (bắt đầu bằng chữ E)"}, {"n": 18, "d": "A", "r": 15, "c": 2, "w": "SHOULDER", "clue": "Ba cho em bé ngồi lên _____ để xem diễu hành."}, {"n": 2, "d": "D", "r": 0, "c": 7, "w": "SHIRT", "clue": "Anh ấy mặc _____ trắng có cổ và thắt cà vạt để đi phỏng vấn."}, {"n": 3, "d": "D", "r": 0, "c": 9, "w": "EYE", "clue": "Bụi bay vào _____ trái của tôi. Tôi không nhìn rõ nữa."}, {"n": 4, "d": "D", "r": 2, "c": 1, "w": "JEANS", "clue": "Loại quần này may bằng vải dày màu xanh, rất bền. Giới trẻ rất thích mặc."}, {"n": 5, "d": "D", "r": 2, "c": 5, "w": "SKIRT", "clue": "Chị ấy mặc áo thun với _____ ngắn tới đầu gối."}, {"n": 7, "d": "D", "r": 5, "c": 3, "w": "NOSE", "clue": "Em ngửi mùi hoa bằng _____."}, {"n": 9, "d": "D", "r": 7, "c": 8, "w": "NECK", "clue": "Trời lạnh, bà quàng khăn quanh _____."}, {"n": 10, "d": "D", "r": 7, "c": 10, "w": "CLOTHES", "clue": "Tủ của chị ấy đầy _____: áo, quần, váy, đầm đủ màu."}, {"n": 11, "d": "D", "r": 8, "c": 2, "w": "TROUSERS", "clue": "Đi làm, ba mặc áo sơ mi và _____ dài màu đen. (bắt đầu bằng chữ T)"}, {"n": 12, "d": "D", "r": 8, "c": 6, "w": "HEAD", "clue": "Đi xe máy, bạn phải đội nón bảo hiểm lên _____."}, {"n": 13, "d": "D", "r": 9, "c": 0, "w": "TUMMY", "clue": "Em bé nói: \"Mẹ ơi, con đau _____!\" (từ thân mật của belly)"}, {"n": 16, "d": "D", "r": 12, "c": 8, "w": "KNEE", "clue": "Em té xe đạp và bị trầy _____. Giờ co chân lại là thấy đau."}]}, {"id": "set-11", "title": "Family & Daily Life", "vi": "Gia đình & Sinh hoạt hằng ngày", "kind": "vctx", "rows": [".....C........", "..FATHER.....S", "...F.I...M...I", "...T.C...O...S", ".BREAKFAST...T", ".R.R.E...HOUSE", "MORNING..E...R", ".T.O....BREAD.", ".H.O.C........", ".E.NOODLES....", ".R...U......F.", "...FISH.N...A.", ".....I..I.F.M.", "..EVENING.O.I.", "....G...H.O.L.", ".SONG...TODAY."], "h": 16, "w": 14, "entries": [{"n": 2, "d": "A", "r": 1, "c": 2, "w": "FATHER", "clue": "Chồng của mẹ em là _____ của em."}, {"n": 6, "d": "A", "r": 4, "c": 1, "w": "BREAKFAST", "clue": "Bảy giờ sáng, trước khi đi học, em ăn _____."}, {"n": 7, "d": "A", "r": 5, "c": 9, "w": "HOUSE", "clue": "Gia đình em sống trong một ngôi _____ nhỏ có sân vườn."}, {"n": 8, "d": "A", "r": 6, "c": 0, "w": "MORNING", "clue": "Mặt trời mọc, mọi người thức dậy và đi làm. Đây là buổi nào trong ngày?"}, {"n": 9, "d": "A", "r": 7, "c": 8, "w": "BREAD", "clue": "Em kẹp thịt và rau vào giữa hai lát _____ để làm sandwich."}, {"n": 11, "d": "A", "r": 9, "c": 3, "w": "NOODLES", "clue": "Tối đói bụng, tôi lấy một gói _____ ăn liền và đổ nước sôi vào."}, {"n": 13, "d": "A", "r": 11, "c": 3, "w": "FISH", "clue": "Con vật này sống dưới nước và bơi rất giỏi. Người ta làm nước mắm từ nó."}, {"n": 16, "d": "A", "r": 13, "c": 2, "w": "EVENING", "clue": "Khoảng 6-7 giờ, mặt trời lặn và cả nhà ăn cơm. Đây là buổi nào trong ngày?"}, {"n": 18, "d": "A", "r": 15, "c": 1, "w": "SONG", "clue": "Ca sĩ đang hát một _____ rất hay. Em thuộc hết lời."}, {"n": 19, "d": "A", "r": 15, "c": 8, "w": "TODAY", "clue": "Hôm qua là thứ Hai. Ngày mai là thứ Tư. Vậy _____ là thứ Ba."}, {"n": 1, "d": "D", "r": 0, "c": 5, "w": "CHICKEN", "clue": "Con vật này có hai chân và hai cánh, gáy \"ò ó o\" mỗi sáng."}, {"n": 3, "d": "D", "r": 1, "c": 3, "w": "AFTERNOON", "clue": "Sau bữa trưa, khoảng 2 đến 5 giờ. Đây là buổi nào trong ngày?"}, {"n": 4, "d": "D", "r": 1, "c": 13, "w": "SISTER", "clue": "Em có một người _____. Chị ấy đang học lớp 12."}, {"n": 5, "d": "D", "r": 2, "c": 9, "w": "MOTHER", "clue": "Vợ của ba em là _____ của em."}, {"n": 6, "d": "D", "r": 4, "c": 1, "w": "BROTHER", "clue": "Em có một người _____. Anh ấy lớn hơn em hai tuổi."}, {"n": 10, "d": "D", "r": 8, "c": 5, "w": "COUSIN", "clue": "Con trai hoặc con gái của cô, chú, dì, cậu là _____ của em."}, {"n": 12, "d": "D", "r": 10, "c": 12, "w": "FAMILY", "clue": "_____ em có bốn người: ba, mẹ, anh hai và em."}, {"n": 14, "d": "D", "r": 11, "c": 8, "w": "NIGHT", "clue": "Trời tối hẳn, có trăng và sao. Mọi người tắt đèn đi ngủ."}, {"n": 15, "d": "D", "r": 12, "c": 10, "w": "FOOD", "clue": "Tôi đói quá. Trong tủ lạnh còn _____ gì không?"}, {"n": 17, "d": "D", "r": 13, "c": 4, "w": "EGG", "clue": "Con gà mái đẻ ra quả _____. Mẹ chiên nó cho em ăn sáng."}]}, {"id": "set-12", "title": "Around Town", "vi": "Dạo quanh thành phố", "kind": "vctx", "rows": ["......M.PARK..", "ELEVATOR..E...", "......T.MUSEUM", "S.....O...T...", "WEATHER...A...", "I.....COMPUTER", "M.CAR.Y...R...", "M.L...C.H.A...", "I.O.B.L.O.N...", "N.UNIVERSITY..", "G.D.C...P...C.", "....Y.S.I.L.A.", "S...C.O.T.A.M.", "HOTEL.C.A.P.E.", "O...ESCALATOR.", "E.....E...O.A.", "SHOP..R...P..."], "h": 17, "w": 14, "entries": [{"n": 2, "d": "A", "r": 0, "c": 8, "w": "PARK", "clue": "Buổi sáng, mọi người đi bộ và tập thể dục ở _____. Ở đó có nhiều cây xanh và ghế đá."}, {"n": 4, "d": "A", "r": 1, "c": 0, "w": "ELEVATOR", "clue": "Văn phòng ở tầng 20. Chúng ta bước vào _____ và bấm số 20."}, {"n": 5, "d": "A", "r": 2, "c": 8, "w": "MUSEUM", "clue": "Chúng tôi đến _____ để xem đồ cổ và tìm hiểu lịch sử."}, {"n": 7, "d": "A", "r": 4, "c": 0, "w": "WEATHER", "clue": "\"Hôm nay _____ thế nào?\" \"Trời nắng và hơi nóng.\""}, {"n": 8, "d": "A", "r": 5, "c": 6, "w": "COMPUTER", "clue": "Ở văn phòng, mỗi nhân viên có một cái _____ để bàn với màn hình và bàn phím."}, {"n": 9, "d": "A", "r": 6, "c": 2, "w": "CAR", "clue": "Xe này có bốn bánh. Cả gia đình ngồi trong xe đi du lịch."}, {"n": 12, "d": "A", "r": 9, "c": 2, "w": "UNIVERSITY", "clue": "Học xong lớp 12, anh tôi thi vào _____ và học thêm bốn năm."}, {"n": 17, "d": "A", "r": 13, "c": 0, "w": "HOTEL", "clue": "Khi đi du lịch, chúng tôi thuê phòng và ngủ lại ở _____."}, {"n": 18, "d": "A", "r": 14, "c": 4, "w": "ESCALATOR", "clue": "Trong trung tâm thương mại, bạn đứng yên trên _____ và nó tự đưa bạn lên tầng trên."}, {"n": 19, "d": "A", "r": 16, "c": 0, "w": "SHOP", "clue": "Chị ấy vào một _____ nhỏ bên đường để mua áo mới."}, {"n": 1, "d": "D", "r": 0, "c": 6, "w": "MOTORCYCLE", "clue": "Xe này có hai bánh, chạy bằng xăng. Người Việt Nam đi xe này rất nhiều."}, {"n": 3, "d": "D", "r": 0, "c": 10, "w": "RESTAURANT", "clue": "Tối nay không nấu cơm. Cả nhà ra _____ gọi món và ăn tối."}, {"n": 6, "d": "D", "r": 3, "c": 0, "w": "SWIMMING", "clue": "Môn thể thao này chơi dưới nước. Bạn dùng tay và chân để di chuyển trong hồ."}, {"n": 9, "d": "D", "r": 6, "c": 2, "w": "CLOUD", "clue": "Trời sắp mưa. Trên trời có nhiều _____ đen."}, {"n": 10, "d": "D", "r": 7, "c": 8, "w": "HOSPITAL", "clue": "Bà bị bệnh nặng. Bác sĩ và y tá chăm sóc bà ở _____."}, {"n": 11, "d": "D", "r": 8, "c": 4, "w": "BICYCLE", "clue": "Xe này có hai bánh, không có máy. Em đạp nó đến trường."}, {"n": 13, "d": "D", "r": 10, "c": 12, "w": "CAMERA", "clue": "Du khách dùng _____ để chụp ảnh và quay phim thành phố."}, {"n": 14, "d": "D", "r": 11, "c": 6, "w": "SOCCER", "clue": "Môn thể thao này có 11 cầu thủ mỗi đội. Họ đá trái banh vào khung thành."}, {"n": 15, "d": "D", "r": 11, "c": 10, "w": "LAPTOP", "clue": "Anh ấy ngồi ở quán cà phê làm việc với chiếc _____. Nó gập lại và bỏ vào balo được."}, {"n": 16, "d": "D", "r": 12, "c": 0, "w": "SHOES", "clue": "Tiệm này bán _____. Bạn mang chúng vào chân khi ra đường."}]}];
+
+const STORE = 'pres-crossword-v1';
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { saved = {}; }
+function persist() { try { localStorage.setItem(STORE, JSON.stringify(saved)); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+const key = (r, c) => r + ',' + c;
+
+// Pre-compute cells for every entry
+PUZZLES.forEach(p => {
+  p.cellEntries = {};
+  p.entries.forEach((e, i) => {
+    e.i = i;
+    e.cells = [...e.w].map((ch, k) => e.d === 'A' ? [e.r, e.c + k] : [e.r + k, e.c]);
+    e.cells.forEach(([r, c]) => { (p.cellEntries[key(r, c)] ||= {})[e.d] = e; });
+  });
+  saved[p.id] ||= { a: {} };
+  saved[p.id].a ||= {};
+});
+
+let P = null;          // current puzzle
+let cur = null;        // [r, c]
+let dir = 'A';
+let inputs = {};       // key -> input
+let cells = {};        // key -> cell div
+
+const sol = (r, c) => P.rows[r][c];
+const ans = (r, c) => saved[P.id].a[key(r, c)] || '';
+const entrySolved = (p, e) => e.cells.every(([r, c]) => (saved[p.id].a[key(r, c)] || '') === p.rows[r][c]);
+const solvedCount = p => p.entries.filter(e => entrySolved(p, e)).length;
+
+const LEVELS = [
+  { kind: 'vi', name: 'Level 1', note: 'Gợi ý là nghĩa tiếng Việt' },
+  { kind: 'ctx', name: 'Level 2', note: 'Gợi ý là câu tiếng Anh, điền từ còn thiếu' },
+  { kind: 'vctx', name: 'Level 3', note: 'Gợi ý là câu tiếng Việt, đoán từ theo ngữ cảnh' },
+];
+const HOW = {
+  vi: 'Đọc nghĩa tiếng Việt rồi gõ từ tiếng Anh. Bấm lại một ô để đổi hướng ngang / dọc.',
+  ctx: 'Đọc câu tiếng Anh rồi gõ từ còn thiếu. Bấm lại một ô để đổi hướng ngang / dọc.',
+  vctx: 'Đọc câu tiếng Việt, đoán từ theo ngữ cảnh rồi gõ từ đó bằng tiếng Anh. Bấm lại một ô để đổi hướng ngang / dọc.',
+};
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const clueHtml = e => esc(e.clue).replace('_____', '<span class="gap" role="img" aria-label="chỗ trống"></span>');
+
+function buildTabs() {
+  const nav = $('tabs');
+  nav.innerHTML = '';
+  LEVELS.forEach(L => {
+    const group = document.createElement('div');
+    group.innerHTML = `<p class="level-name">${L.name}<small>${L.note}</small></p>`;
+    const row = document.createElement('div');
+    row.className = 'sets'; row.setAttribute('role', 'tablist'); row.setAttribute('aria-label', L.name);
+    PUZZLES.forEach((p, i) => {
+      if (p.kind !== L.kind) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tab'; b.id = 'tab-' + p.id; b.setAttribute('role', 'tab');
+      b.innerHTML = `<span class="no">Bộ ${i + 1}</span><span class="name" lang="en">${esc(p.title)}</span><span class="count"></span>`;
+      b.addEventListener('click', () => { location.hash = p.id; show(p.id); });
+      row.appendChild(b);
+    });
+    group.appendChild(row); nav.appendChild(group);
+  });
+  refreshTabs();
+}
+function refreshTabs() {
+  PUZZLES.forEach(p => {
+    const b = $('tab-' + p.id);
+    const n = solvedCount(p);
+    b.querySelector('.count').textContent = n === p.entries.length ? `Hoàn thành ${n}/${n} từ` : `${n}/${p.entries.length} từ`;
+    b.classList.toggle('done', n === p.entries.length);
+    b.setAttribute('aria-selected', String(P && P.id === p.id));
+  });
+}
+
+function show(id) {
+  P = PUZZLES.find(p => p.id === id) || PUZZLES[0];
+  cur = null; inputs = {}; cells = {};
+  const idx = PUZZLES.indexOf(P);
+  $('set-title').innerHTML = `Bộ ${idx + 1}: <span lang="en">${esc(P.title)}</span><small>${esc(P.vi)}</small>`;
+  $('how').textContent = HOW[P.kind];
+
+  const g = $('grid');
+  g.style.setProperty('--cols', P.w);
+  g.innerHTML = '';
+  const nums = {};
+  P.entries.forEach(e => { nums[key(e.r, e.c)] = e.n; });
+  for (let r = 0; r < P.h; r++) for (let c = 0; c < P.w; c++) {
+    if (sol(r, c) === '.') { g.appendChild(document.createElement('div')); continue; }
+    const k = key(r, c);
+    const d = document.createElement('div'); d.className = 'cell';
+    if (nums[k]) { const s = document.createElement('span'); s.className = 'num'; s.textContent = nums[k]; d.appendChild(s); }
+    const inp = document.createElement('input');
+    inp.id = `c-${P.id}-${r}-${c}`; inp.type = 'text'; inp.maxLength = 2; inp.autocomplete = 'off';
+    inp.setAttribute('autocapitalize', 'characters'); inp.setAttribute('autocorrect', 'off'); inp.spellcheck = false;
+    inp.setAttribute('aria-label', `Hàng ${r + 1}, cột ${c + 1}`);
+    inp.value = ans(r, c);
+    inp.addEventListener('pointerdown', () => { if (cur && cur[0] === r && cur[1] === c && document.activeElement === inp) flip(); });
+    inp.addEventListener('focus', () => select(r, c));
+    inp.addEventListener('input', () => onType(r, c, inp));
+    inp.addEventListener('keydown', ev => onKey(ev, r, c));
+    d.appendChild(inp); g.appendChild(d);
+    inputs[k] = inp; cells[k] = d;
+  }
+
+  ['A', 'D'].forEach(D => {
+    const ol = $('clues-' + D); ol.innerHTML = '';
+    P.entries.filter(e => e.d === D).forEach(e => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'clue'; b.id = `clue-${e.i}`;
+      b.innerHTML = `<span class="n">${e.n}.</span><span class="t"${P.kind === 'ctx' ? ' lang="en"' : ''}>${clueHtml(e)}</span><span class="len">(${e.w.length})</span>`;
+      b.addEventListener('click', () => {
+        dir = e.d;
+        const target = e.cells.find(([r, c]) => ans(r, c) !== sol(r, c)) || e.cells[0];
+        inputs[key(...target)].focus();
+      });
+      li.appendChild(b); ol.appendChild(li);
+    });
+  });
+
+  disarm(); setStatus('');
+  refreshSolved(); refreshTabs();
+}
+
+function select(r, c) {
+  const ents = P.cellEntries[key(r, c)];
+  if (!ents[dir]) dir = dir === 'A' ? 'D' : 'A';
+  cur = [r, c];
+  paint();
+}
+function flip() {
+  const ents = P.cellEntries[key(...cur)];
+  const other = dir === 'A' ? 'D' : 'A';
+  if (ents[other]) { dir = other; paint(); }
+}
+function paint() {
+  Object.values(cells).forEach(d => d.classList.remove('in-word'));
+  document.querySelectorAll('.clue.active').forEach(b => b.classList.remove('active'));
+  if (!cur) return;
+  const e = P.cellEntries[key(...cur)][dir];
+  e.cells.forEach(([r, c]) => cells[key(r, c)].classList.add('in-word'));
+  const b = $('clue-' + e.i);
+  b.classList.add('active');
+}
+
+function setCell(r, c, ch) {
+  const k = key(r, c);
+  if (ch) saved[P.id].a[k] = ch; else delete saved[P.id].a[k];
+  inputs[k].value = ch;
+  cells[k].classList.remove('ok', 'wrong');
+}
+
+function onType(r, c, inp) {
+  const letters = inp.value.toUpperCase().replace(/[^A-Z]/g, '');
+  const ch = letters.slice(-1);
+  setCell(r, c, ch);
+  persist(); disarm(); setStatus('');
+  refreshSolved(); refreshTabs();
+  if (ch) step(1);
+  celebrate();
+}
+function step(delta) {
+  const e = P.cellEntries[key(...cur)][dir];
+  const i = e.cells.findIndex(([r, c]) => r === cur[0] && c === cur[1]) + delta;
+  if (i >= 0 && i < e.cells.length) inputs[key(...e.cells[i])].focus();
+}
+function onKey(ev, r, c) {
+  const moves = { ArrowLeft: [0, -1, 'A'], ArrowRight: [0, 1, 'A'], ArrowUp: [-1, 0, 'D'], ArrowDown: [1, 0, 'D'] };
+  if (moves[ev.key]) {
+    ev.preventDefault();
+    const [dr, dc, d] = moves[ev.key];
+    const next = inputs[key(r + dr, c + dc)];
+    if (P.cellEntries[key(r, c)][d]) dir = d;
+    if (next) next.focus(); else paint();
+  } else if (ev.key === 'Backspace') {
+    ev.preventDefault();
+    if (ans(r, c)) { setCell(r, c, ''); }
+    else { step(-1); if (cur) setCell(cur[0], cur[1], ''); }
+    persist(); refreshSolved(); refreshTabs(); setStatus('');
+  } else if (ev.key === ' ' || ev.key === 'Enter') {
+    ev.preventDefault(); flip();
+  }
+}
+
+function refreshSolved() {
+  P.entries.forEach(e => $('clue-' + e.i).classList.toggle('solved', entrySolved(P, e)));
+}
+function setStatus(text, cls) {
+  const s = $('status'); s.textContent = text; s.className = 'status' + (cls ? ' ' + cls : '');
+}
+function celebrate() {
+  if (solvedCount(P) === P.entries.length) setStatus('Giỏi lắm! Bạn đã hoàn thành bộ này. Well done!', 'good');
+}
+
+function check() {
+  disarm();
+  let filled = 0, wrong = 0;
+  for (const k in inputs) {
+    const [r, c] = k.split(',').map(Number);
+    const a = ans(r, c);
+    cells[k].classList.remove('ok', 'wrong');
+    if (!a) continue;
+    filled++;
+    if (a === sol(r, c)) cells[k].classList.add('ok'); else { cells[k].classList.add('wrong'); wrong++; }
+  }
+  const n = solvedCount(P), total = P.entries.length;
+  if (!filled) setStatus('Bạn chưa điền ô nào. Hãy thử một từ dễ trước nhé.');
+  else if (n === total) setStatus('Giỏi lắm! Bạn đã hoàn thành bộ này. Well done!', 'good');
+  else if (wrong) setStatus(`Đúng ${n}/${total} từ. Có ${wrong} chữ cái sai (ô màu đỏ), hãy sửa lại.`, 'bad');
+  else setStatus(`Đúng ${n}/${total} từ. Các chữ đã điền đều đúng, làm tiếp nhé!`, 'good');
+}
+// Two-step buttons instead of confirm dialogs
+let armed = null;
+function disarm() {
+  if (!armed) return;
+  armed.btn.textContent = armed.label; armed.btn.classList.remove('armed'); armed = null;
+}
+function twoStep(btn, question, action) {
+  btn.addEventListener('click', () => {
+    if (armed && armed.btn === btn) { disarm(); action(); return; }
+    disarm();
+    armed = { btn, label: btn.textContent };
+    btn.textContent = question; btn.classList.add('armed');
+  });
+}
+twoStep($('btn-reset'), 'Bấm lần nữa để xóa bài làm', () => {
+  saved[P.id] = { a: {} }; persist(); show(P.id);
+});
+$('btn-check').addEventListener('click', check);
+
+function route() { show((location.hash || '').slice(1)); }
+window.addEventListener('hashchange', route);
+buildTabs(); route();
+</script>
+</body>
+</html>
